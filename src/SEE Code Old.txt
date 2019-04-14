@@ -1,0 +1,97 @@
+package robb.ai;
+
+public class SEE {
+	
+	private static int see(Board board, byte square, byte enemy, long emptyMask){
+		long targetMask = (1L << square);
+		byte bestCapture = getBestCapture(board, targetMask, emptyMask);		
+		int value = 0;
+		
+		if(bestCapture != -1){
+			if(enemy == 5 || enemy == 11) return Engine.mateValue;
+			byte piece = Utils.getPieceAt(board, bestCapture);	
+			board.whiteToMove = !board.whiteToMove;
+			value = Math.max(0, Math.abs(Evaluation.score[enemy]) - see(board, square, piece, emptyMask | (1L << bestCapture)));
+			board.whiteToMove = !board.whiteToMove;
+	   }
+		
+	   return value;
+	}
+	
+	public static int seeCapture(Board board, short move){
+		byte piece = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
+		byte end = NewMoveStructure.getTo(move);
+		byte enemy = Utils.getPieceAt(board, end);
+		
+		if(piece == 12) return 0;
+		if(enemy == 5 || enemy == 11) return Engine.mateValue;
+		
+		board.whiteToMove = !board.whiteToMove;
+		int value = Math.abs(Evaluation.score[enemy]) - see(board, end, piece, (1L << NewMoveStructure.getFrom(move)));
+		board.whiteToMove = !board.whiteToMove;
+		return value;
+	}
+	
+	private static byte getBestCapture(Board b, long targetMask, long emptyMask){
+		long friendlyPieces = b.whiteToMove ? (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK) : (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK);
+		long enemyPieces = b.whiteToMove ? (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK) : (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK);	
+		long notEmpty = ~emptyMask;
+		
+		//Pawn moves
+		long piecesToVisit = (b.whiteToMove ? b.WP : b.BP) & notEmpty;
+		while(piecesToVisit != 0L){
+			int i = Long.numberOfTrailingZeros(piecesToVisit);						
+			long m = targetMask & MoveGeneration.pawnAttackMasks[b.whiteToMove ? 0 : 1][i];
+			if(m != 0L) return (byte)i;
+			piecesToVisit ^= (1L << i);
+		}
+		
+		//Knight moves
+		piecesToVisit = (b.whiteToMove ? b.WN : b.BN) & notEmpty;
+		while(piecesToVisit != 0L){
+			int i = Long.numberOfTrailingZeros(piecesToVisit);						
+			long m = targetMask & MoveGeneration.knightMoves[i];
+			if(m != 0L) return (byte)i;
+			piecesToVisit ^= (1L << i);
+		}
+		
+		//Bishop moves
+		piecesToVisit = (b.whiteToMove ? b.WB : b.BB) & notEmpty;
+		while(piecesToVisit != 0L){
+			int i = Long.numberOfTrailingZeros(piecesToVisit);						
+			long m = targetMask & MoveGeneration.getAllBishopMoves(i, enemyPieces, friendlyPieces, emptyMask);
+			if(m != 0L) return (byte)i;
+			piecesToVisit ^= (1L << i);
+		}
+		
+		//Rook moves
+		piecesToVisit = (b.whiteToMove ? b.WR : b.BR) & notEmpty;
+		while(piecesToVisit != 0L){
+			int i = Long.numberOfTrailingZeros(piecesToVisit);						
+			long m = targetMask & MoveGeneration.getAllRookMoves(i, enemyPieces, friendlyPieces, emptyMask);
+			if(m != 0L) return (byte)i;
+			piecesToVisit ^= (1L << i);
+		}
+		
+		//Queen moves
+		piecesToVisit = (b.whiteToMove ? b.WQ : b.BQ) & notEmpty;
+		while(piecesToVisit != 0L){
+			int i = Long.numberOfTrailingZeros(piecesToVisit);						
+			long m = targetMask & (MoveGeneration.getAllRookMoves(i, enemyPieces, friendlyPieces, emptyMask) | MoveGeneration.getAllBishopMoves(i, enemyPieces, friendlyPieces, emptyMask));
+			if(m != 0L) return (byte)i;
+			piecesToVisit ^= (1L << i);
+		}
+		
+		//King moves
+		piecesToVisit = (b.whiteToMove ? b.WK : b.BK) & notEmpty;
+		while(piecesToVisit != 0L){
+			int i = Long.numberOfTrailingZeros(piecesToVisit);						
+			long m = targetMask & MoveGeneration.kingMoves[i];
+			if(m != 0L) return (byte)i;
+			piecesToVisit ^= (1L << i);
+		}
+		
+		return -1;
+	}
+
+}
