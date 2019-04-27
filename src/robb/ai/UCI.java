@@ -31,18 +31,19 @@ public class UCI {
                 inputUCINewGame();
             }else if("print".equals(str)){
             	Utils.printBoard(Engine.board, true);
-            }else if(str.startsWith("eval")){
-            	if(Engine.board != null){
-            		final int e = (str.contains("static") ? Evaluation.evaluate(Engine.board) : Engine.quiescence(Integer.MIN_VALUE + 1, Integer.MAX_VALUE, (short)0, true, true));
-            		System.out.println("info string Evaluation = " + e + (str.contains("static") ? "cp (static)" : "cp"));
-            	}else{
-            		System.out.println("info string Error: No Board to Evaluate");
-            	}
+//            }else if(str.startsWith("eval")){
+//            	if(Engine.board != null){
+//            		int evaluation = (str.contains("static") ? Evaluation.evaluate(Engine.board) : Engine.quiescence(Integer.MIN_VALUE + 1, Integer.MAX_VALUE, (short)0, true, true));
+//            		System.out.println("info string Evaluation = " + evaluation + (str.contains("static") ? "cp (static)" : "cp"));
+//            	}else{
+//            		System.out.println("info string Error: No Board to Evaluate");
+//            	}
             }else if(str.startsWith("position")){
                 inputPosition(str);
             }else if(str.startsWith("go ")){
             	inputGo(str);
             }else if(str.equals("stop")){
+//            	System.out.println("Stop");
             	Engine.stopSearch();
             }else if(str.startsWith("moves")){
             	boolean captures = str.contains("loud");

@@ -65,5 +65,9 @@ public class Board {
 		BQ = array[10];
 		BK = array[11];
 	}
+	
+	public Board clone(){
+		return new Board(this.WP, this.WN, this.WB, this.WR, this.WQ, this.WK, this.BP, this.BN, this.BB, this.BR, this.BQ, this.BK, this.wCastleQueen, this.wCastleKing, this.bCastleQueen, this.bCastleKing, this.whiteToMove, this.enPassant, this.halfMoveClock);
+	}
 
 }

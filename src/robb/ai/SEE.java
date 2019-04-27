@@ -7,7 +7,7 @@ public class SEE {
 		int value = 0;
 		
 		if(bestCapture != -1){
-			if(enemy == (white ? 11 : 5)) return Engine.mateValue;
+			if(enemy == (white ? 11 : 5)) return Search.mateValue;
 			byte piece = Utils.getPieceAt(board, bestCapture);
 			value = Math.max(0, Math.abs(Evaluation.score[enemy]) - see(board, !white, targetSquare, piece, emptyMask | (1L << bestCapture)));
 	   }
@@ -22,7 +22,7 @@ public class SEE {
 		byte end = NewMoveStructure.getTo(move);
 		byte enemy = Utils.getPieceAt(board, end);		
 		
-		if(enemy == 5 || enemy == 11) return Engine.mateValue;
+		if(enemy == 5 || enemy == 11) return Search.mateValue;
 		
 		int value = Math.abs(Evaluation.score[enemy]) - see(board, !board.whiteToMove, end, piece, (1L << NewMoveStructure.getFrom(move)));
 		return value;

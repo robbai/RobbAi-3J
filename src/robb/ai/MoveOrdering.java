@@ -9,7 +9,7 @@ public class MoveOrdering {
 	private static final short killersAtPly = 5;
 	
 	public static int[][] history = new int[12][64];
-	public static int[][] killers = new int[Engine.maxDepth][killersAtPly];
+	public static int[][] killers = new int[Search.maximumDepth][killersAtPly];
 	
 	public static ArrayList<Short> sort(final Board b, final short hashMove, final short ply, final ArrayList<Short> moves){
 		return insertionSort(moves, getMoveScores(b, moves, hashMove, ply));
@@ -30,7 +30,7 @@ public class MoveOrdering {
 	}
 	
 	public static void clearKillers(){
-		for(byte i = 0; i < Engine.maxDepth; i++){
+		for(byte i = 0; i < Search.maximumDepth; i++){
 			for(byte f = 0; f < killersAtPly; f++) killers[i][f] = -1;
 		}
 	}
@@ -41,6 +41,7 @@ public class MoveOrdering {
 			if(killer[i] == move) return i; //Already exists
 			if(killer[i] == -1) return i; //Empty slot
 		}
+		
 		//Pick random slot
 //		return (byte)r.nextInt(killersAtPly);
 		return (byte)(System.nanoTime() % killersAtPly);

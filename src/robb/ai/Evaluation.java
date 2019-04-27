@@ -3,7 +3,7 @@ package robb.ai;
 public class Evaluation {
 	
 	public static final String[] names = new String[] {"White Pawn", "White Knight", "White Bishop", "White Rook", "White Queen", "White King", "Black Pawn", "Black Knight", "Black Bishop", "Black Rook", "Black Queen", "Black King", "Nothing"};
-	public static final int[] score = new int[] {120, 320, 340, 560, 1040, Engine.mateValue, -120, -320, -340, -560, -1040, -Engine.mateValue, 0};
+	public static final int[] score = new int[] {120, 320, 340, 560, 1040, Search.mateValue, -120, -320, -340, -560, -1040, -Search.mateValue, 0};
 	public static final int[] minimalistScoreAbs = new int[] {1, 3, 3, 5, 9, 20, 1, 3, 3, 5, 9, 20, -1};
 	
 	private static final long[] rings = new long[] {35604928818740736L, 66229406269440L, 103481868288L};
@@ -11,14 +11,14 @@ public class Evaluation {
 	private static final float[] ringImportance = new float[] {0F, 1.5F, 1.0F, 0.1F, -0.05F, 0F, 0F, -1.5F, -1.0F, -0.1F, 0.05F, 0F};
 	private static final int[] endgameTaperVal = new int[] {0, 1, 1, 2, 4, 0};
 	private static final float endgameTaperSum = (float)(8 * endgameTaperVal[0] + 4 * endgameTaperVal[1] + 4 * endgameTaperVal[2] + 4 * endgameTaperVal[3] + 2 * endgameTaperVal[4] + 2 * endgameTaperVal[5]);
-	private static final float materialism = 1.5F, kingPawnSafety = 40F, passedPawnBonus = 70F, fianchettoBonus = 25F;
+	private static final float materialism = 1.5F, kingPawnSafety = 40F, passedPawnBonus = 70F, fianchettoBonus = 21F;
 	private static final long kingSide = (Utils.filesLogical[5] | Utils.filesLogical[6] | Utils.filesLogical[7]), queenSide = (Utils.filesLogical[1] | Utils.filesLogical[0] | Utils.filesLogical[2]);
 	private static final long darkSquares = 6172840429334713770L, lightSquares = (~darkSquares);
 	private static final long[] whitePassedPawns = new long[] {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 847736400445440L, 1978051601039360L, 3956103202078720L, 7912206404157440L, 15824412808314880L, 31648825616629760L, 63297651233259520L, 54255129628508160L, 847736400248832L, 1978051600580608L, 3956103201161216L, 7912206402322432L, 15824412804644864L, 31648825609289728L, 63297651218579456L, 54255129615925248L, 847736349917184L, 1978051483140096L, 3956102966280192L, 7912205932560384L, 15824411865120768L, 31648823730241536L, 63297647460483072L, 54255126394699776L, 847723465015296L, 1978021418369024L, 3956042836738048L, 7912085673476096L, 15824171346952192L, 31648342693904384L, 63296685387808768L, 54254301760978944L, 844424930131968L, 1970324836974592L, 3940649673949184L, 7881299347898368L, 15762598695796736L, 31525197391593472L, 63050394783186944L, 54043195528445952L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};
 	private static final long[] blackPassedPawns = new long[] {0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 768L, 1792L, 3584L, 7168L, 14336L, 28672L, 57344L, 49152L, 197376L, 460544L, 921088L, 1842176L, 3684352L, 7368704L, 14737408L, 12632064L, 50529024L, 117901056L, 235802112L, 471604224L, 943208448L, 1886416896L, 3772833792L, 3233857536L, 12935430912L, 30182672128L, 60365344256L, 120730688512L, 241461377024L, 482922754048L, 965845508096L, 827867578368L, 3311470314240L, 7726764066560L, 15453528133120L, 30907056266240L, 61814112532480L, 123628225064960L, 247256450129920L, 211934100111360L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L};	
 	private static final long rim = (Utils.filesIndex[0] | Utils.filesIndex[7]);
 	private static final long[][] fianchetto = {{1L << 9, 1L << 14}, {1L << 49, 1L << 54}};
-	private static final int doubledPenalty = 40, isolatedPenalty = 20, semiOpenFileBonus = 30, openFileBonus = 60, blockerPenalty = 48;
+	private static final int doubledPenalty = 38, isolatedPenalty = 21, semiOpenFileBonus = 30, openFileBonus = 60, blockerPenalty = 46;
 	
 //	public static int evaluate(Board b){
 //		int total = 0;
@@ -59,7 +59,8 @@ public class Evaluation {
 //		return total;
 //	}
 	
-//	private static final int[] orthogonalImportance = new int[] {8, 12, 6, 1, 8, 0}; 
+//	private static final int[] orthogonalImportance = new int[] {10, 9, 7, 3, 5, 0};
+//	private static final boolean orthogonalPawns = false; 
 //	public static int evaluate(Board b){
 //		int total = 0;
 //		
@@ -81,20 +82,20 @@ public class Evaluation {
 //				
 //				total += score[piece];
 //				
-////				if(i == 0){
-////					total += pawnTable[i];
-////				}else if(i == 6){
-////					total -= pawnTable[i];
-////				}else{
+//				if(i == 0 && !orthogonalPawns){
+//					total += pawnTable[i];
+//				}else if(i == 6 && !orthogonalPawns){
+//					total -= pawnTable[i];
+//				}else{
 //					//Calculate distance to the enemy king
 //					if(white){
-//						int orthogonal = 8 - Math.max(Math.abs((i / 8) - bkRank), Math.abs((i % 8) - bkFile));
-//						total += (orthogonal * orthogonalImportance[piece % 6]);
+//						int orthogonal = 16 - (Math.abs((i / 8) - bkRank) + Math.abs((i % 8) - bkFile));
+//						total += (orthogonal * orthogonal * orthogonalImportance[piece % 6]) / 15;
 //					}else{
-//						int orthogonal = 8 - Math.max(Math.abs((i / 8) - wkRank), Math.abs((i % 8) - wkFile));
-//						total -= (orthogonal * orthogonalImportance[piece % 6]);
+//						int orthogonal = 16 - (Math.abs((i / 8) - wkRank) + Math.abs((i % 8) - wkFile));
+//						total -= (orthogonal * orthogonal * orthogonalImportance[piece % 6]) / 15;
 //					}
-////				}
+//				}
 //				
 //				piecesToVisit ^= (1L << i);
 //			}
