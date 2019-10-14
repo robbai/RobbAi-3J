@@ -17,26 +17,30 @@ public class Engine {
 	public static Search search;
 	public static Timer timer;
 	
-	public static boolean debug = false; 
-	
 	public static void startSearch(TimeControl timeControl, long time, boolean increment){
 		search = new Search(board, timeControl, time, increment);
 		timer = new Timer(search, timeControl, search.getTimeToEnd());
 		
 		search.withParralelTimer(timer);
 		
-		timer.start();
 		search.start();
+		timer.start();
+	}
+
+	public static void stopSearch(){
+		timer.forceEnd();
+	}
+
+	public static void reset(){
+		MoveOrdering.clearHistory();
+		MoveOrdering.clearKillers();
+		resetTTable(false);
 	}
 	
 	public static void resetTTable(boolean clear){
 		if(tTable.size() == tTableSize && !clear) return;
 		tTable.clear();
 		for(int i = 0; i < tTableSize; i++) tTable.add(0L);
-	}
-
-	public static void stopSearch(){
-		timer.forceEnd();
 	}
 
 }

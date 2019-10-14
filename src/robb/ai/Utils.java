@@ -148,8 +148,8 @@ public class Utils {
 	public static boolean isCapture(Board b, short move){
 		if(isPieceAt(b, (byte)((move >>> 6) & 63))) return true;
 		byte start = (byte)(move & 63);
-		if(b.enPassant != -1){ //En Passant
-			if(((1L << start) & (b.WP | b.BP)) != 0L) return (Math.abs(start - ((move >>> 6) & 63)) % 8) != 0; //If Pawn move, return diagonal
+		if(b.enPassant != 64){ // En Passant.
+			if(((1L << start) & (b.WP | b.BP)) != 0L) return (Math.abs(start - ((move >>> 6) & 63)) % 8) != 0; // If Pawn move, return diagonal
 		}
 		return false;
 	}
@@ -157,10 +157,10 @@ public class Utils {
 	public static byte getToBeCapturedPiece(Board b, int move){
 		byte piece = getPieceAt(b, NewMoveStructure.getTo(move)); 
 		if(piece != 12) return piece;
-		if(b.enPassant != -1){ //En Passant
+		if(b.enPassant != 64){ //En Passant
 			byte start = (byte)(move & 63);
-			if(((1L << start) & (b.WP | b.BP)) != 0L){
-				return (byte)((Math.abs(start - ((move >>> 6) & 63)) % 8) != 0 ? (b.whiteToMove ? 6 : 0) : 12); //If Pawn move, is diagonal
+			if(((1L << start) & (b.whiteToMove ? b.BP : b.WP)) != 0L){
+				return (byte)((Math.abs(start - ((move >>> 6) & 63)) % 8) != 0 ? (b.whiteToMove ? 6 : 0) : 12); // If Pawn move, is diagonal
 			}
 		}
 		return 12;

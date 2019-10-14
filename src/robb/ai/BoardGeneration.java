@@ -1,15 +1,9 @@
 package robb.ai;
 
-import java.util.ArrayList;
-
 public class BoardGeneration {
 
-	public static ArrayList<Long> threeFold = new ArrayList<Long>();
-	public static ArrayList<Long> history = new ArrayList<Long>();
-	
 	public static Board importFEN(String fen){
 		Board b = new Board(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, false, false, true, (byte)-1, (byte)0);
-		threeFold.clear();
 		long[] pieces = b.getPieceArray();
 		String[] splits = fen.split(" ");
 		final String placement = splits[0].replace("/", ""); 

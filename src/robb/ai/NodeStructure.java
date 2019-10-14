@@ -21,26 +21,26 @@ public class NodeStructure {
 	private static final int checkShift = 58;
 	private static final long checkMask = 63;
 	
-	public static int getScore(final long node){
+	public static int getScore(long node){
 		return (int)(node & scoreMask);
 	}
 	
-	public static byte getDepth(final long node){
+	public static byte getDepth(long node){
 		return (byte)((node >>> depthShift) & depthMask);
 	}
 	
-	public static short getBestMove(final long node){
+	public static short getBestMove(long node){
 		return (short)((node >>> bestMoveShift) & bestMoveMask);
 	}
 	
 	/**
 	 * Applies to both nodes and hashes!
 	 */
-	public static byte getCheckBits(final long node){
+	public static byte getCheckBits(long node){
 		return (byte)((node >>> checkShift) & checkMask);
 	}
 	
-	public static Flag getFlag(final long node){
+	public static Flag getFlag(long node){
 		byte flag = (byte)((node >>> flagShift) & flagMask);
 		switch(flag){
 			case 0:
@@ -54,11 +54,11 @@ public class NodeStructure {
 		return null;
 	}
 	
-	public static long createNode(int depth, short bestMove, int score, Flag flag, long hash){
+	public static long createNode(int depth, int bestMove, int score, Flag flag, long hash){
 //		System.out.println(Utils.shortMoveToNotation(bestMove) + ": " + bestMove + ", " + Long.toBinaryString((long)(bestMove & bestMoveMask)));
 //		System.out.println("Creating Node: Depth: " + depth + ", Best Move: " + bestMove + ", Score: " + score + ", Flag: " + flag);
 		
-		long n = (score & scoreMask) + ((long)depth << depthShift) + ((long)(bestMove & bestMoveMask) << bestMoveShift) + ((flag == Flag.EXACT ? 0L : (flag == Flag.LOWERBOUND ? 1L : 2L)) << flagShift) + (hash & (checkMask << checkShift));		
+		long n = (score & scoreMask) + ((long)depth << depthShift) + ((long)(bestMove & bestMoveMask) << bestMoveShift) + ((flag == Flag.EXACT ? 0L : (flag == Flag.LOWERBOUND ? 1L : 2L)) << flagShift) + ((hash & checkMask) << checkShift);		
 		return n;
 	}
 	

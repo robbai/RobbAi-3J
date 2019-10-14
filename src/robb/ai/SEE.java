@@ -9,23 +9,23 @@ public class SEE {
 		if(bestCapture != -1){
 			if(enemy == (white ? 11 : 5)) return Search.mateValue;
 			byte piece = Utils.getPieceAt(board, bestCapture);
-			value = Math.max(0, Math.abs(Evaluation.score[enemy]) - see(board, !white, targetSquare, piece, emptyMask | (1L << bestCapture)));
+			value = Math.max(0, Math.abs(Evaluation.minimalistScoreAbs[enemy]) - see(board, !white, targetSquare, piece, emptyMask | (1L << bestCapture)));
 	   }
 		
 	   return value;
 	}
 	
-	public static int seeCapture(Board board, short move){
-		byte piece = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
+	public static int seeCapture(Board board, int moves){
+		byte piece = Utils.getPieceAt(board, NewMoveStructure.getFrom(moves));
 		if(piece == 12) return 0;
 		
-		byte end = NewMoveStructure.getTo(move);
+		byte end = NewMoveStructure.getTo(moves);
 		byte enemy = Utils.getPieceAt(board, end);		
 		
 		if(enemy == 5 || enemy == 11) return Search.mateValue;
 		
-		int value = Math.abs(Evaluation.score[enemy]) - see(board, !board.whiteToMove, end, piece, (1L << NewMoveStructure.getFrom(move)));
-		return value;
+		int value = Math.abs(Evaluation.minimalistScoreAbs[enemy]) - see(board, !board.whiteToMove, end, piece, (1L << NewMoveStructure.getFrom(moves)));
+		return value * 100;
 	}
 	
 	/**

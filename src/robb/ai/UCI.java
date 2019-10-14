@@ -1,6 +1,5 @@
 package robb.ai;
 
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class UCI {
@@ -15,6 +14,7 @@ public class UCI {
     	
     	Zobrist.initZobrist();
     	MoveGeneration.initMovesBoards();
+    	Engine.resetTTable(true);
     	inputPosition("position startpos");
     	
 		@SuppressWarnings("resource")
@@ -46,34 +46,50 @@ public class UCI {
 //            	System.out.println("Stop");
             	Engine.stopSearch();
             }else if(str.startsWith("moves")){
-            	boolean captures = str.contains("loud");
+            	boolean captures = (str.contains("loud") || str.contains("captures"));
             	boolean legal = str.contains("legal");
-            	ArrayList<Short> moves = (captures ? MoveGeneration.getAllLoudMoves(Engine.board) : (legal ? MoveGeneration.getAllLegalMoves(Engine.board) : MoveGeneration.getAllMoves(Engine.board)));
-            	for(int i = 0; i < moves.size(); i++) System.out.println((i + 1) + ": " + Utils.shortMoveToNotation(moves.get(i)) + (captures ? " (" + SEE.seeCapture(Engine.board, moves.get(i)) + ")" : ""));
+            	int[] moves = new int[MoveIterator.maxMoves];
+            	moves = (captures ? MoveGeneration.getAllLoudMoves(Engine.board, moves) : (legal ? MoveGeneration.getAllLegalMoves(Engine.board) : MoveGeneration.getAllMoves(Engine.board, moves)));
+            	for(short i = 0; i < MoveIterator.maxMoves; i++){
+            		int move = moves[i];
+            		if(move == -1 || move == 0) break;
+            		System.out.println((i + 1) + ": " + Utils.shortMoveToNotation(move) + (captures ? " (" + SEE.seeCapture(Engine.board, move) + ")" : ""));
+            	}
             }else if(str.equals("order")){
-            	ArrayList<Short> moves = MoveGeneration.getAllLegalMoves(Engine.board);
+            	int[] moves = MoveGeneration.getAllLegalMoves(Engine.board);
             	
-            	long hash = BoardGeneration.threeFold.size() != 0 ? BoardGeneration.threeFold.get(BoardGeneration.threeFold.size() - 1) : Zobrist.getHash(Engine.board);
+            	long hash = (Engine.board.threeFold.size() != 0 ? Engine.board.threeFold.get(Engine.board.threeFold.size() - 1) : Zobrist.getHash(Engine.board));
         		long node = Engine.tTable.get((int)(hash & Engine.fetchMask));
-            	ArrayList<Integer> scores = MoveOrdering.getMoveScores(Engine.board, moves, (node == 0 ? -1 : NodeStructure.getBestMove(node)), (short)0);
+            	int[] scores = new int[MoveIterator.maxMoves];
+            	MoveOrdering.getMoveScores(Engine.board, moves, (node == 0 ? -1 : NodeStructure.getBestMove(node)), (short)0, scores);
             	
             	moves = MoveOrdering.insertionSort(moves, scores);
-            	for(int i = 0; i < moves.size(); i++) System.out.println((i + 1) + ": " + Utils.shortMoveToNotation(moves.get(i)) + " = " + scores.get(i));
-            }else if(str.equals("debug")){
-                Engine.debug = !Engine.debug;
-//                Make.debug = Engine.debug;
-                System.out.println("info string Debug Mode is now " + (Engine.debug ? "enabled" : "disabled"));
-//              System.out.println("info string Threefold Size = " + BoardGeneration.threeFold.size());
+            	for(short i = 0; i < MoveIterator.maxMoves; i++){
+            		int move = moves[i];
+            		if(move == 0) break;
+            		System.out.println((i + 1) + ": " + Utils.shortMoveToNotation(move) + " = " + scores[i]);
+            	}
             }else if(str.startsWith("perft ")){
             	if(Engine.board != null){
-            		final long timeStarted = System.currentTimeMillis();
-                	int depth = Integer.parseInt(str.substring(str.indexOf(" ") + 1));
-                	int result = perft(depth);
-                	System.out.print("info string Perft " + depth + ": ");
-                	System.out.printf("%,d\n", result);
-                	System.out.print("info string Time in Milliseconds: ");
-                	System.out.printf("%,d\n", (System.currentTimeMillis() - timeStarted));
-//                	System.out.println();
+            		if(str.contains("divide")){
+            			int depth = Integer.parseInt(str.substring(str.indexOf(" ") + 1));
+            			int[] moves = MoveGeneration.getAllLegalMoves(Engine.board);
+                		for(int move : moves){
+                			if(move == -1 || move == 0) break;
+                			Engine.board = Make.makeMove(Engine.board, move);
+                			int result = perft(depth);
+                			System.out.println(Utils.shortMoveToNotation(move) + ": " + result);
+                			Engine.board = Make.undoMove(Engine.board);
+                		}
+            		}else{
+	            		long timeStarted = System.currentTimeMillis();
+	                	int depth = Integer.parseInt(str.substring(str.indexOf(" ") + 1));
+	                	int result = perft(depth);
+	                	System.out.print("info string Perft " + depth + ": ");
+	                	System.out.printf("%,d\n", result);
+	                	System.out.print("info string Time in Milliseconds: ");
+	                	System.out.printf("%,d\n", (System.currentTimeMillis() - timeStarted));
+            		}
             	}else{
             		System.out.println("Error: No Board to Test");
             	}
@@ -81,7 +97,7 @@ public class UCI {
             	System.out.println("info string Ending " + engineName + "...");
             	System.exit(0);
 			}else if(str.equals("undo")){
-            	if(BoardGeneration.history.size() == 0){
+            	if(Engine.board.history.size() == 0){
             		System.out.println("info string Error: No Moves to Undo");
             	}else{
             		Make.undoMove(Engine.board);
@@ -95,15 +111,20 @@ public class UCI {
     }
 	
     private static int perft(int depth){
-		final ArrayList<Short> moves = MoveGeneration.getAllLegalMoves(Engine.board);
-		if(depth <= 1) return moves.size();
+    	if(depth == 0) return 1;
+    	
+		int[] moves = MoveGeneration.getAllLegalMoves(Engine.board);
+		
+//		if(depth <= 1) return MoveIterator.getMoveCount(moves);
 		
 		int nodes = 0;
-		for(short m : moves){
-			Make.makeMove(Engine.board, m);
+		for(int move : moves){
+			if(move == -1 || move == 0) break;
+			Engine.board = Make.makeMove(Engine.board, move);
 			nodes += perft(depth - 1);
-			Make.undoMove(Engine.board);
+			Engine.board = Make.undoMove(Engine.board);
 		}
+		
 		return nodes;
 	}
 
@@ -117,19 +138,19 @@ public class UCI {
     }
     
     private static void inputSetOption(String input){
-    	if(input.contains("uci_variant ")){
-    		String v = input.substring(input.indexOf("uci_variant ") + 12).trim();
-    		if(v.contains(" ")) v = v.substring(0, v.indexOf(" "));
-    		
-    		if(v.equalsIgnoreCase("koth") || v.equalsIgnoreCase("kingofthehill")){
-    			variant = Variant.KOTH;
-    			System.out.println("info string Variant: King of the Hill");
-    		}else{
-        		System.out.println("info string Unknown Variant: '" + v.toUpperCase() + "'");
-    		}
-    	}else{
+//    	if(input.contains("uci_variant ")){
+//    		String v = input.substring(input.indexOf("uci_variant ") + 12).trim();
+//    		if(v.contains(" ")) v = v.substring(0, v.indexOf(" "));
+//    		
+//    		if(v.equalsIgnoreCase("koth") || v.equalsIgnoreCase("kingofthehill")){
+//    			variant = Variant.KOTH;
+//    			System.out.println("info string Variant: King of the Hill");
+//    		}else{
+//        		System.out.println("info string Unknown Variant: '" + v.toUpperCase() + "'");
+//    		}
+//    	}else{
     		System.out.println("info string Options Unsupported");
-    	}
+//    	}
     }
     
     private static void inputUCINewGame(){
@@ -137,7 +158,6 @@ public class UCI {
     	MoveOrdering.clearHistory();
 		MoveOrdering.clearKillers();
     	Engine.board = new Board(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, true, true, true, true, true, (byte)64, (byte)0);
-    	BoardGeneration.threeFold.clear();
     }
     
     private static void inputPosition(String input){
@@ -153,7 +173,7 @@ public class UCI {
             input = input.substring(input.indexOf("moves") + 6);
             String[] moves = input.split(" ");
             for(String m : moves){
-            	Engine.board = Make.makeMove(Engine.board, Utils.notationMoveToShort(Engine.board, m), true);            	
+            	Engine.board = Make.makeMove(Engine.board, Utils.notationMoveToShort(Engine.board, m));            	
             }
         }
     }

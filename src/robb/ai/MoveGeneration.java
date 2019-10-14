@@ -1,7 +1,5 @@
 package robb.ai;
 
-import java.util.ArrayList;
-
 public class MoveGeneration {
 	
 	private final static short[] knightDelta = new short[] {15, 6, -10, -17, -15, -6, 10, 17};
@@ -18,115 +16,133 @@ public class MoveGeneration {
 	public static long[] kingMoves = new long[64];
 	public static long[][] pawnAttackMasks = new long[2][64];
 	
-	public static ArrayList<Short> getAllMoves(final Board b){
-		return getAllMoves(b, true, false);
+	public static int[] getAllMoves(final Board b, int[] moves){
+		return getAllMoves(b, true, false, moves);
 	}
 	
-	public static ArrayList<Short> getAllLoudMoves(final Board b){
-		return getAllMoves(b, false, true);
+	public static int[] getAllLoudMoves(final Board b, int[] moves){
+		return getAllMoves(b, false, true, moves);
 	}
 	
-	private static ArrayList<Short> getAllMoves(final Board b, final boolean allowCastling, final boolean loudOnly){
-		ArrayList<Short> moves = new ArrayList<Short>();
+	private static int[] getAllMoves(final Board b, final boolean allowCastling, final boolean loudOnly, int[] moves){
 		if(b == null){
 			System.out.println("info string Error: Board is Null");
 			return moves;
 		}
 		
-		final long friendlyPieces = b.whiteToMove ? (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK) : (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK);
-		final long enemyPieces = b.whiteToMove ? (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK) : (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK);
+		short count = 0;
 		
-		//Castling
+		long friendlyPieces = b.whiteToMove ? (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK) : (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK);
+		long enemyPieces = b.whiteToMove ? (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK) : (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK);
+		
+		// Castling
 		if(allowCastling){
 			if(b.whiteToMove){
-				if(b.wCastleKing && (6L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, true)) moves.add(NewMoveStructure.createMove((byte)3, (byte)1, (byte)12));
-				if(b.wCastleQueen && (112L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, false)) moves.add(NewMoveStructure.createMove((byte)3, (byte)5, (byte)12));
+				if(b.wCastleKing && (6L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, true)){
+					moves[count] = NewMoveStructure.createMove(3, 1, 12);
+					count ++;
+				}
+				if(b.wCastleQueen && (112L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, false)){
+					moves[count] = NewMoveStructure.createMove(3, 5, 12);
+					count ++;
+				}
 			}else{
-				if(b.bCastleKing && (432345564227567616L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, true)) moves.add(NewMoveStructure.createMove((byte)59, (byte)57, (byte)12));
-				if(b.bCastleQueen && (8070450532247928832L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, false)) moves.add(NewMoveStructure.createMove((byte)59, (byte)61, (byte)12));
+				if(b.bCastleKing && (432345564227567616L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, true)){
+					moves[count] = NewMoveStructure.createMove(59, 57, 12);
+					count ++;
+				}
+				if(b.bCastleQueen && (8070450532247928832L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, false)){
+					moves[count] = NewMoveStructure.createMove(59, 61, 12);
+					count ++;
+				}
 			}
 		}
 		
-		//Pawn moves
+		// Pawn moves
 		long piecesToVisit = b.whiteToMove ? b.WP : b.BP;
 		while(piecesToVisit != 0L){
-			int i = Long.numberOfTrailingZeros(piecesToVisit);			
+			int sq = Long.numberOfTrailingZeros(piecesToVisit);			
 			if(b.whiteToMove){
-				moves = generateWhitePawnMoves(b, moves, (byte)i, loudOnly, friendlyPieces | enemyPieces, enemyPieces); 
+				count = generateWhitePawnMoves(b, moves, count, sq, loudOnly, friendlyPieces | enemyPieces, enemyPieces); 
 			}else{
-				moves = generateBlackPawnMoves(b, moves, (byte)i, loudOnly, friendlyPieces | enemyPieces, enemyPieces);
+				count = generateBlackPawnMoves(b, moves, count, sq, loudOnly, friendlyPieces | enemyPieces, enemyPieces);
 			}			
-			piecesToVisit ^= (1L << i);
+			piecesToVisit ^= (1L << sq);
 		}
 		
-		//Knight moves
+		// Knight moves
 		piecesToVisit = b.whiteToMove ? b.WN : b.BN;
 		while(piecesToVisit != 0L){
-			int i = Long.numberOfTrailingZeros(piecesToVisit);
-			long m = getAllKnightMoves(i, friendlyPieces);
+			int sq = Long.numberOfTrailingZeros(piecesToVisit);
+			long m = getAllKnightMoves(sq, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves.add(NewMoveStructure.createMove((byte)i, (byte)f, (byte)12));
+				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				count ++;
 				m ^= (1L << f);
 			}
-			piecesToVisit ^= (1L << i);
+			piecesToVisit ^= (1L << sq);
 		}
 		
-		//Bishop moves
+		// Bishop moves
 		piecesToVisit = b.whiteToMove ? b.WB : b.BB;
 		while(piecesToVisit != 0L){
-			int i = Long.numberOfTrailingZeros(piecesToVisit);
-			long m = getAllBishopMoves(i, enemyPieces, friendlyPieces);
+			int sq = Long.numberOfTrailingZeros(piecesToVisit);
+			long m = getAllBishopMoves(sq, enemyPieces, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves.add(NewMoveStructure.createMove((byte)i, (byte)f, (byte)12));
+				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				count ++;
 				m ^= (1L << f);
 			}
-			piecesToVisit ^= (1L << i);
+			piecesToVisit ^= (1L << sq);
 		}
 
-		//Rook moves
+		// Rook moves
 		piecesToVisit = b.whiteToMove ? b.WR : b.BR;
 		while(piecesToVisit != 0L){
-			int i = Long.numberOfTrailingZeros(piecesToVisit);
-			long m = getAllRookMoves(i, enemyPieces, friendlyPieces);
+			int sq = Long.numberOfTrailingZeros(piecesToVisit);
+			long m = getAllRookMoves(sq, enemyPieces, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves.add(NewMoveStructure.createMove((byte)i, (byte)f, (byte)12));
+				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				count ++;
 				m ^= (1L << f);
 			}
-			piecesToVisit ^= (1L << i);
+			piecesToVisit ^= (1L << sq);
 		}
 
-		//Queen moves
+		// Queen moves
 		piecesToVisit = b.whiteToMove ? b.WQ : b.BQ;
 		while(piecesToVisit != 0L){
-			int i = Long.numberOfTrailingZeros(piecesToVisit);
-			long m = getAllRookMoves(i, enemyPieces, friendlyPieces) | getAllBishopMoves(i, enemyPieces, friendlyPieces);
+			int sq = Long.numberOfTrailingZeros(piecesToVisit);
+			long m = getAllRookMoves(sq, enemyPieces, friendlyPieces) | getAllBishopMoves(sq, enemyPieces, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves.add(NewMoveStructure.createMove((byte)i, (byte)f, (byte)12));
+				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				count ++;
 				m ^= (1L << f);
 			}
-			piecesToVisit ^= (1L << i);
+			piecesToVisit ^= (1L << sq);
 		}
 		
-		//King moves
+		// King moves
 		piecesToVisit = b.whiteToMove ? b.WK : b.BK;
 		while(piecesToVisit != 0L){
-			int i = Long.numberOfTrailingZeros(piecesToVisit);
-			long m = getAllKingMoves(i, friendlyPieces);
+			int sq = Long.numberOfTrailingZeros(piecesToVisit);
+			long m = getAllKingMoves(sq, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves.add(NewMoveStructure.createMove((byte)i, (byte)f, (byte)12));
+				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				count ++;
 				m ^= (1L << f);
 			}
-			piecesToVisit ^= (1L << i);
+			piecesToVisit ^= (1L << sq);
 		}
 		
 		return moves;
@@ -138,73 +154,100 @@ public class MoveGeneration {
 		return (attackedSquares & targetSquares) == 0L;
 	}
 
-	private static ArrayList<Short> generateWhitePawnMoves(Board b, ArrayList<Short> moves, byte i, final boolean loudOnly, long allPieces, long enemyPieces){
-		if((i + 1) % 8 != 0 && (enemyPieces & (1L << (i + 9))) != 0L){ //If not on A file, generate captures
-			addPawnMove(moves, true, i, (byte)(i + 9), false, true);
+	private static short generateWhitePawnMoves(Board b, int[] moves, short count, int sq, final boolean loudOnly, long allPieces, long enemyPieces){
+		if((sq + 1) % 8 != 0 && (enemyPieces & (1L << (sq + 9))) != 0L){ // If not on A file, generate captures
+			count = addPawnMove(moves, count, true, sq, sq + 9, false, true);
 		}
-		if((i + 8) % 8 != 0 && (enemyPieces & (1L << (i + 7))) != 0L){ //If not on H file, generate captures
-			addPawnMove(moves, true, i, (byte)(i + 7), false, true);
+		if((sq + 8) % 8 != 0 && (enemyPieces & (1L << (sq + 7))) != 0L){ // If not on H file, generate captures
+			count = addPawnMove(moves, count, true, sq, sq + 7, false, true);
 		}
 		if(b.enPassant != 64){
-			if((i + 1) % 8 != 0 && b.enPassant == (i + 9)){ //No chance of promotion, so no addPawnMove() needed
-				moves.add(NewMoveStructure.createMove(i, (byte)(i + 9), (byte)12));
-			}else if((i + 8) % 8 != 0 && b.enPassant == (i + 7)){
-				moves.add(NewMoveStructure.createMove(i, (byte)(i + 7), (byte)12));
+			if((sq + 1) % 8 != 0 && b.enPassant == (sq + 9)){ // No chance of promotion
+				moves[count] = NewMoveStructure.createMove(sq, sq + 9, 12);
+				count ++;
+			}else if((sq + 8) % 8 != 0 && b.enPassant == (sq + 7)){
+				moves[count] = NewMoveStructure.createMove(sq, sq + 7, 12);
+				count ++;
 			}
 		}
-		if((allPieces & (1L << (i + 8))) == 0L){
-			addPawnMove(moves, true, i, (byte)(i + 8), loudOnly, false);
-			if(!loudOnly && i < 16 && i > 7 && ((allPieces & (1L << (i + 16))) == 0L)){ //No promote
-				moves.add(NewMoveStructure.createMove(i, (byte)(i + 16), (byte)12));
+		if((allPieces & (1L << (sq + 8))) == 0L){
+			count = addPawnMove(moves, count, true, sq, sq + 8, loudOnly, false);
+			if(!loudOnly && sq < 16 && sq > 7 && ((allPieces & (1L << (sq + 16))) == 0L)){ // No promotions
+				moves[count] = NewMoveStructure.createMove(sq, sq + 16, 12);
+				count ++;
 			}
 		}
-		return moves;
+		return count;
 	}
 	
-	private static ArrayList<Short> generateBlackPawnMoves(Board b, ArrayList<Short> moves, byte i, final boolean loudOnly, long allPieces, long enemyPieces){
-		if((i + 1) % 8 != 0 && (enemyPieces & (1L << (i - 7))) != 0L){ //If not on A file, generate captures
-			addPawnMove(moves, false, i, (byte)(i - 7), false, true);
+	private static short generateBlackPawnMoves(Board b, int[] moves, short count, int sq, final boolean loudOnly, long allPieces, long enemyPieces){
+		if((sq + 1) % 8 != 0 && (enemyPieces & (1L << (sq - 7))) != 0L){ // If not on A file, generate captures
+			count = addPawnMove(moves, count, false, sq, sq - 7, false, true);
 		}
-		if((i + 8) % 8 != 0 && (enemyPieces & (1L << (i - 9))) != 0L){ //If not on H file, generate captures
-			addPawnMove(moves, false, i, (byte)(i - 9), false, true);
+		if((sq + 8) % 8 != 0 && (enemyPieces & (1L << (sq - 9))) != 0L){ // If not on H file, generate captures
+			count = addPawnMove(moves, count, false, sq, sq - 9, false, true);
 		}
 		if(b.enPassant != 64){
-			if((i + 1) % 8 != 0 && b.enPassant == (i - 7)){ //No chance of promotion, so no addPawnMove() needed
-				moves.add(NewMoveStructure.createMove(i, (byte)(i - 7), (byte)12));
-			}else if((i + 8) % 8 != 0 && b.enPassant == (i - 9)){
-				moves.add(NewMoveStructure.createMove(i, (byte)(i - 9), (byte)12));
+			if((sq + 1) % 8 != 0 && b.enPassant == (sq - 7)){ // No chance of promotion
+				moves[count] = NewMoveStructure.createMove(sq, sq - 7, 12);
+				count ++;
+			}else if((sq + 8) % 8 != 0 && b.enPassant == (sq - 9)){
+				moves[count] = NewMoveStructure.createMove(sq, sq - 9, 12);
+				count ++;
 			}
 		}
-		if((allPieces & (1L << (i - 8))) == 0L){
-			addPawnMove(moves, false, i, (byte)(i - 8), loudOnly, false);
-			if(!loudOnly && i < 56 && i > 47 && ((allPieces & (1L << (i - 16))) == 0L)){ //No promote
-				moves.add(NewMoveStructure.createMove(i, (byte)(i - 16), (byte)12));
+		if((allPieces & (1L << (sq - 8))) == 0L){
+			count = addPawnMove(moves, count, false, sq, sq - 8, loudOnly, false);
+			if(!loudOnly && sq < 56 && sq > 47 && ((allPieces & (1L << (sq - 16))) == 0L)){ // No promotions
+				moves[count] = NewMoveStructure.createMove(sq, sq - 16, 12);
+				count ++;
 			}
 		}
-		return moves;
+		return count;
 	}
 		
-	private static ArrayList<Short> addPawnMove(ArrayList<Short> moves, final boolean white, final byte startSquare, final byte endSquare, final boolean onlyPromote, final boolean capture){
-//		boolean promote = (((1L << endSquare) & (white ? Utils.ranks[7] : Utils.ranks[0])) != 0L);
-		boolean promote = (white ? (endSquare > 55) : (endSquare < 8));
+	private static short addPawnMove(int[] moves, short count, boolean white, int from, int to, boolean onlyPromote, boolean capture){
+		boolean promote = (white ? (to > 55) : (to < 8));
 		if(promote){
-			moves.add(NewMoveStructure.createMove(startSquare, endSquare, (byte)(white ? 4 :10))); //Queen 
-			moves.add(NewMoveStructure.createMove(startSquare, endSquare, (byte)(white ? 1 : 7))); //Knight
-			moves.add(NewMoveStructure.createMove(startSquare, endSquare, (byte)(white ? 3 : 9))); //Rook
-			moves.add(NewMoveStructure.createMove(startSquare, endSquare, (byte)(white ? 2 : 8))); //Bishop
+			moves[count] = NewMoveStructure.createMove(from, to, (white ? 4 : 10)); // Queen 
+			moves[count + 1] = NewMoveStructure.createMove(from, to, (white ? 1 : 7)); // Knight
+			moves[count + 2] = NewMoveStructure.createMove(from, to, (white ? 3 : 9)); // Rook
+			moves[count + 3] = NewMoveStructure.createMove(from, to, (white ? 2 : 8)); // Bishop
+			count += 4;
 		}else if(!onlyPromote){
-			moves.add(NewMoveStructure.createMove(startSquare, endSquare, (byte)12));
+			moves[count] = NewMoveStructure.createMove(from, to, 12);
+			count ++;
 		}
-		return moves;
+		return count;
 	}
 	
-	public static ArrayList<Short> getAllLegalMoves(Board b){
-		ArrayList<Short> moves = getAllMoves(b);
-		for(int i = (moves.size() - 1); i >= 0; i--){
-			b = Make.makeMove(b, moves.get(i));
-			if(Check.isInCheck(b, !b.whiteToMove)) moves.remove(i);			
+	public static int[] getAllLegalMoves(Board b){
+		int[] moves = getAllMoves(b, new int[MoveIterator.maxMoves]);
+		
+		for(int i = 0; i < MoveIterator.maxMoves; i++){
+			int move = moves[i];
+			
+			if(move == 0) break;
+			
+			b = Make.makeMove(b, move);
+			if(Check.isInCheck(b, !b.whiteToMove)) moves[i] = 0;			
 			b = Make.undoMove(b);
 		}
+		
+		for(int i = (MoveIterator.maxMoves - 1); i > 0; i--){
+			if(moves[i] == 0) continue;
+			if(moves[i - 1] == 0){
+				for(int j = i; j < MoveIterator.maxMoves; j++){
+					moves[j - 1] = moves[j];
+					if(moves[j] == 0){ 
+						break;
+					}else if(j == MoveIterator.maxMoves - 1){
+						moves[j] = 0;
+					}
+				}
+			}
+		}
+		
 		return moves;
 	}
 	
@@ -337,9 +380,9 @@ public class MoveGeneration {
 			}
 			northWestMoves[i] = l;
 		}
-		for(int i = 0; i < 64; i++){ //{15, 6, -10, -17, -15, -6, 10, 17}
+		for(int i = 0; i < 64; i++){ // {15, 6, -10, -17, -15, -6, 10, 17}
 			long l = 0L;
-			long start = (1L << i); //up2 right1 (0), up1 right2 (1), down1 right2 (2), down2 right1 (3), down2 left1 (4), down1 left2 (5), up1 left2 (6), up2 left1 (7)
+			long start = (1L << i); // up2 right1 (0), up1 right2 (1), down1 right2 (2), down2 right1 (3), down2 left1 (4), down1 left2 (5), up1 left2 (6), up2 left1 (7)
 			boolean fileA = ((start & Utils.filesLogical[0]) != 0L);
 			boolean fileB = ((start & Utils.filesLogical[1]) != 0L);
 			boolean fileG = ((start & Utils.filesLogical[6]) != 0L);
@@ -362,7 +405,7 @@ public class MoveGeneration {
 			knightMoves[i] = l;
 		}
 		for(int i = 0; i < 64; i++){
-			long l = 0L; //{9, 8, 7, -1, -9, -8, -7, 1}
+			long l = 0L; // {9, 8, 7, -1, -9, -8, -7, 1}
 			long start = (1L << i);
 			boolean fileA = ((start & Utils.filesLogical[0]) != 0L);
 			boolean fileH = ((start & Utils.filesLogical[7]) != 0L);
@@ -399,7 +442,7 @@ public class MoveGeneration {
 				total |= getAllKingMoves(i, friendlyPieces);
 			}
 			i ++;
-			piecesToVisit = piecesToVisit >>> 1;
+			piecesToVisit >>>= 1;
 		}
 		i = 0;
 		piecesToVisit = white ? b.WN : b.BN;
@@ -408,7 +451,7 @@ public class MoveGeneration {
 				total |= getAllKnightMoves(i, friendlyPieces);
 			}
 			i ++;
-			piecesToVisit = piecesToVisit >>> 1;
+			piecesToVisit >>>= 1;
 		}
 		i = 0;
 		piecesToVisit = white ? b.WR : b.BR;
@@ -417,7 +460,7 @@ public class MoveGeneration {
 				total |= getAllRookMoves(i, enemyPieces, friendlyPieces);				
 			}
 			i ++;
-			piecesToVisit = piecesToVisit >>> 1;
+			piecesToVisit >>>= 1;
 		}
 		i = 0;
 		piecesToVisit = white ? b.WB : b.BB;
@@ -426,7 +469,7 @@ public class MoveGeneration {
 				total |= getAllBishopMoves(i, enemyPieces, friendlyPieces);				
 			}
 			i ++;
-			piecesToVisit = piecesToVisit >>> 1;
+			piecesToVisit >>>= 1;
 		}
 		i = 0;
 		piecesToVisit = white ? b.WQ : b.BQ;
@@ -435,7 +478,7 @@ public class MoveGeneration {
 				total |= (getAllRookMoves(i, enemyPieces, friendlyPieces) | getAllBishopMoves(i, enemyPieces, friendlyPieces));
 			}
 			i ++;
-			piecesToVisit = piecesToVisit >>> 1;
+			piecesToVisit >>>= 1;
 		}
 		i = 0;
 		piecesToVisit = white ? b.WP : b.BP;
@@ -444,7 +487,7 @@ public class MoveGeneration {
 				total |= pawnAttackMasks[white ? 0 : 1][i];
 			}
 			i ++;
-			piecesToVisit = piecesToVisit >>> 1;
+			piecesToVisit >>>= 1;
 		}
 		return total;
 	}
