@@ -119,7 +119,7 @@ public class Search extends Thread implements Runnable {
 
 			boolean mate = isMateValue(bestScore);				
 			if(bestThisDepth != -1){
-				System.out.println("info currmove " + Utils.shortMoveToNotation(moves[bestThisDepth]) + " score " + (mate ? "mate " + (bestScore < 0 ? "-" : "") + Utils.pliesToMoves(1 + Math.abs(Math.abs(bestScore) - mateValue)) : "cp " + bestScore) + " depth " + depth + " seldepth " + seldepth + " nodes " + nodes + " time " + (System.currentTimeMillis() - timeStarted) + " nps " + nps(nodes, System.currentTimeMillis() - timeStarted) + " pv " + getPv(moves[bestThisDepth], depth));
+				System.out.println("info currmove " + Utils.moveToNotation(moves[bestThisDepth]) + " score " + (mate ? "mate " + (bestScore < 0 ? "-" : "") + Utils.pliesToMoves(1 + Math.abs(Math.abs(bestScore) - mateValue)) : "cp " + bestScore) + " depth " + depth + " seldepth " + seldepth + " nodes " + nodes + " time " + (System.currentTimeMillis() - timeStarted) + " nps " + nps(nodes, System.currentTimeMillis() - timeStarted) + " pv " + getPv(moves[bestThisDepth], depth));
 			}
 
 			// Set the best move.
@@ -151,7 +151,7 @@ public class Search extends Thread implements Runnable {
 			System.out.println("info string Quiescence Nodes = " + (int)((double)qNodes / (double)nodes * 100D) + "%");
 		}
 
-		System.out.println("bestmove " + (bestMove == 0 ? "null" : Utils.shortMoveToNotation(bestMove)));
+		System.out.println("bestmove " + (bestMove == 0 ? "null" : Utils.moveToNotation(bestMove)));
 
 		//		Engine.reset();
 
@@ -295,9 +295,9 @@ public class Search extends Thread implements Runnable {
 				if(score > alpha){
 					alpha = score;
 
-					byte enemy = Utils.getToBeCapturedPiece(board, move);
-					byte friendly = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
-					byte to = NewMoveStructure.getTo(move);
+					int enemy = Utils.getToBeCapturedPiece(board, move);
+					int friendly = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
+					int to = NewMoveStructure.getTo(move);
 
 					if(enemy == 12) MoveOrdering.history[friendly][to] += depth;	
 
@@ -388,7 +388,7 @@ public class Search extends Thread implements Runnable {
 
 			// Pruning.
 			if(!check && i != 0){
-				byte enemy = Utils.getToBeCapturedPiece(board, move);
+				int enemy = Utils.getToBeCapturedPiece(board, move);
 
 				if(enemy != 12){
 					// Delta prune.
@@ -441,7 +441,7 @@ public class Search extends Thread implements Runnable {
 	// 	}
 
 	private String getPv(int move, int depth){
-		String pv = Utils.shortMoveToNotation(move) + " ";
+		String pv = Utils.moveToNotation(move) + " ";
 		if(pvEnabled){
 			board = Make.makeMove(board, move);
 			byte movesToUndo = 1;
@@ -469,7 +469,7 @@ public class Search extends Thread implements Runnable {
 					}
 
 					if(found){
-						pv += Utils.shortMoveToNotation(hashMove) + " ";
+						pv += Utils.moveToNotation(hashMove) + " ";
 						board = Make.makeMove(board, hashMove);
 					}else{
 						break;

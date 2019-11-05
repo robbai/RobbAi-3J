@@ -108,7 +108,7 @@ public class MoveOrdering {
 			// Hash move.
 			return hashMoveScore; 
 		}else{
-			byte enemy = Utils.getToBeCapturedPiece(board, move);
+			int enemy = Utils.getToBeCapturedPiece(board, move);
 			
 			int killerIndex = getKillerIndex(move, ply);
 			
@@ -134,12 +134,13 @@ public class MoveOrdering {
 				return killerMoveScore - killerIndex;
 			}else{
 				// History heuristic.
-				byte piece = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
-				byte to = NewMoveStructure.getTo(move);
+				int piece = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
+				int to = NewMoveStructure.getTo(move);
+				
 				int historyScore = history[piece][to];
-//				return Math.min(historyScore, killerMoveScore - killersAtPly);
-				return historyScore;
-//				return 0;
+				
+				return Math.min(historyScore, killerMoveScore - killersAtPly);
+//				return historyScore;
 			}
 		}
 	}

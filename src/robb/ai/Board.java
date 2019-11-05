@@ -26,10 +26,10 @@ public class Board {
 	public boolean bCastleKing;
 	public boolean whiteToMove;
 	
-	public byte enPassant;
-	public byte halfMoveClock;
+	public int enPassant;
+	public int halfMoveClock;
 		
-	public Board(long wP, long wN, long wB, long wR, long wQ, long wK, long bP, long bN, long bB, long bR, long bQ, long bK, boolean wCastleQueen, boolean wCastleKing, boolean bCastleQueen, boolean bCastleKing, boolean whiteToMove, byte enPassant, byte halfMoveClock, ArrayList<Long> threeFold, ArrayList<Long> history){
+	public Board(long wP, long wN, long wB, long wR, long wQ, long wK, long bP, long bN, long bB, long bR, long bQ, long bK, boolean wCastleQueen, boolean wCastleKing, boolean bCastleQueen, boolean bCastleKing, boolean whiteToMove, int enPassant, int halfMoveClock, ArrayList<Long> threeFold, ArrayList<Long> history){
 		super();
 		WP = wP;
 		WN = wN;

@@ -5,9 +5,10 @@ import java.util.Scanner;
 public class UCI {
 	
 	private static final String engineName = "RobbAi 3J", engineAuthor = "Robbie";
-	public static Variant variant;
 	
     public static void main(String[] args){
+    	System.out.println(Long.toBinaryString(Long.MIN_VALUE));
+    	
     	System.out.println(engineName + " by " + engineAuthor);
     	System.out.println("info string Test Message: 6");
     	Utils.printBoardCoords();
@@ -53,7 +54,7 @@ public class UCI {
             	for(short i = 0; i < MoveIterator.maxMoves; i++){
             		int move = moves[i];
             		if(move == -1 || move == 0) break;
-            		System.out.println((i + 1) + ": " + Utils.shortMoveToNotation(move) + (captures ? " (" + SEE.seeCapture(Engine.board, move) + ")" : ""));
+            		System.out.println((i + 1) + ": " + Utils.moveToNotation(move) + (captures ? " (" + SEE.seeCapture(Engine.board, move) + ")" : ""));
             	}
             }else if(str.equals("order")){
             	int[] moves = MoveGeneration.getAllLegalMoves(Engine.board);
@@ -67,7 +68,7 @@ public class UCI {
             	for(short i = 0; i < MoveIterator.maxMoves; i++){
             		int move = moves[i];
             		if(move == 0) break;
-            		System.out.println((i + 1) + ": " + Utils.shortMoveToNotation(move) + " = " + scores[i]);
+            		System.out.println((i + 1) + ": " + Utils.moveToNotation(move) + " = " + scores[i]);
             	}
             }else if(str.startsWith("perft ")){
             	if(Engine.board != null){
@@ -78,7 +79,7 @@ public class UCI {
                 			if(move == -1 || move == 0) break;
                 			Engine.board = Make.makeMove(Engine.board, move);
                 			int result = perft(depth);
-                			System.out.println(Utils.shortMoveToNotation(move) + ": " + result);
+                			System.out.println(Utils.moveToNotation(move) + ": " + result);
                 			Engine.board = Make.undoMove(Engine.board);
                 		}
             		}else{
@@ -173,7 +174,7 @@ public class UCI {
             input = input.substring(input.indexOf("moves") + 6);
             String[] moves = input.split(" ");
             for(String m : moves){
-            	Engine.board = Make.makeMove(Engine.board, Utils.notationMoveToShort(Engine.board, m));            	
+            	Engine.board = Make.makeMove(Engine.board, Utils.notationToMove(Engine.board, m));            	
             }
         }
     }

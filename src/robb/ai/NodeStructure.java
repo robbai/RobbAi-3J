@@ -63,7 +63,7 @@ public class NodeStructure {
 	}
 	
 	public static String asString(long node, boolean flag){
-		return ("Depth: " + Long.toBinaryString(getDepth(node)) + " (" + getDepth(node) + ")" + ", Best Move: " + Integer.toBinaryString(getBestMove(node)) + " (" + getBestMove(node) + "L, " + Utils.shortMoveToNotation(getBestMove(node)) + "), Score: " + Integer.toBinaryString(getScore(node)) + " (" + getScore(node) + ")" + (flag ? ", Flag: " + getFlag(node) : "")) +  ", Node: (" + node + "L)";
+		return ("Depth: " + Long.toBinaryString(getDepth(node)) + " (" + getDepth(node) + ")" + ", Best Move: " + Integer.toBinaryString(getBestMove(node)) + " (" + getBestMove(node) + "L, " + Utils.moveToNotation(getBestMove(node)) + "), Score: " + Integer.toBinaryString(getScore(node)) + " (" + getScore(node) + ")" + (flag ? ", Flag: " + getFlag(node) : "")) +  ", Node: (" + node + "L)";
 	}
 
 }

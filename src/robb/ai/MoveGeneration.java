@@ -30,7 +30,7 @@ public class MoveGeneration {
 			return moves;
 		}
 		
-		short count = 0;
+		int count = 0;
 		
 		long friendlyPieces = b.whiteToMove ? (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK) : (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK);
 		long enemyPieces = b.whiteToMove ? (b.BP | b.BN | b.BB | b.BR | b.BQ | b.BK) : (b.WP | b.WN | b.WB | b.WR | b.WQ | b.WK);
@@ -39,20 +39,20 @@ public class MoveGeneration {
 		if(allowCastling){
 			if(b.whiteToMove){
 				if(b.wCastleKing && (6L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, true)){
-					moves[count] = NewMoveStructure.createMove(3, 1, 12);
+					moves[count] = NewMoveStructure.createMove(3, 1, 12, 5, 12);
 					count ++;
 				}
 				if(b.wCastleQueen && (112L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, false)){
-					moves[count] = NewMoveStructure.createMove(3, 5, 12);
+					moves[count] = NewMoveStructure.createMove(3, 5, 12, 5, 12);
 					count ++;
 				}
 			}else{
 				if(b.bCastleKing && (432345564227567616L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, true)){
-					moves[count] = NewMoveStructure.createMove(59, 57, 12);
+					moves[count] = NewMoveStructure.createMove(59, 57, 12, 11, 12);
 					count ++;
 				}
 				if(b.bCastleQueen && (8070450532247928832L & (friendlyPieces | enemyPieces)) == 0L && isCastlingLegal(b, false)){
-					moves[count] = NewMoveStructure.createMove(59, 61, 12);
+					moves[count] = NewMoveStructure.createMove(59, 61, 12, 11, 12);
 					count ++;
 				}
 			}
@@ -78,7 +78,7 @@ public class MoveGeneration {
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -93,7 +93,7 @@ public class MoveGeneration {
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -108,7 +108,7 @@ public class MoveGeneration {
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -123,7 +123,7 @@ public class MoveGeneration {
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -138,7 +138,7 @@ public class MoveGeneration {
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -154,68 +154,70 @@ public class MoveGeneration {
 		return (attackedSquares & targetSquares) == 0L;
 	}
 
-	private static short generateWhitePawnMoves(Board b, int[] moves, short count, int sq, final boolean loudOnly, long allPieces, long enemyPieces){
+	private static int generateWhitePawnMoves(Board b, int[] moves, int count, int sq, final boolean loudOnly, long allPieces, long enemyPieces){
 		if((sq + 1) % 8 != 0 && (enemyPieces & (1L << (sq + 9))) != 0L){ // If not on A file, generate captures
-			count = addPawnMove(moves, count, true, sq, sq + 9, false, true);
+			count = addPawnMove(b, moves, count, true, sq, sq + 9, false, true);
 		}
 		if((sq + 8) % 8 != 0 && (enemyPieces & (1L << (sq + 7))) != 0L){ // If not on H file, generate captures
-			count = addPawnMove(moves, count, true, sq, sq + 7, false, true);
+			count = addPawnMove(b, moves, count, true, sq, sq + 7, false, true);
 		}
 		if(b.enPassant != 64){
 			if((sq + 1) % 8 != 0 && b.enPassant == (sq + 9)){ // No chance of promotion
-				moves[count] = NewMoveStructure.createMove(sq, sq + 9, 12);
+				moves[count] = NewMoveStructure.createMove(sq, sq + 9, 12, 0, 12);
 				count ++;
 			}else if((sq + 8) % 8 != 0 && b.enPassant == (sq + 7)){
-				moves[count] = NewMoveStructure.createMove(sq, sq + 7, 12);
+				moves[count] = NewMoveStructure.createMove(sq, sq + 7, 12, 0, 12);
 				count ++;
 			}
 		}
 		if((allPieces & (1L << (sq + 8))) == 0L){
-			count = addPawnMove(moves, count, true, sq, sq + 8, loudOnly, false);
+			count = addPawnMove(b, moves, count, true, sq, sq + 8, loudOnly, false);
 			if(!loudOnly && sq < 16 && sq > 7 && ((allPieces & (1L << (sq + 16))) == 0L)){ // No promotions
-				moves[count] = NewMoveStructure.createMove(sq, sq + 16, 12);
+				moves[count] = NewMoveStructure.createMove(sq, sq + 16, 12, 0, 12);
 				count ++;
 			}
 		}
 		return count;
 	}
 	
-	private static short generateBlackPawnMoves(Board b, int[] moves, short count, int sq, final boolean loudOnly, long allPieces, long enemyPieces){
+	private static int generateBlackPawnMoves(Board b, int[] moves, int count, int sq, final boolean loudOnly, long allPieces, long enemyPieces){
 		if((sq + 1) % 8 != 0 && (enemyPieces & (1L << (sq - 7))) != 0L){ // If not on A file, generate captures
-			count = addPawnMove(moves, count, false, sq, sq - 7, false, true);
+			count = addPawnMove(b, moves, count, false, sq, sq - 7, false, true);
 		}
 		if((sq + 8) % 8 != 0 && (enemyPieces & (1L << (sq - 9))) != 0L){ // If not on H file, generate captures
-			count = addPawnMove(moves, count, false, sq, sq - 9, false, true);
+			count = addPawnMove(b, moves, count, false, sq, sq - 9, false, true);
 		}
 		if(b.enPassant != 64){
 			if((sq + 1) % 8 != 0 && b.enPassant == (sq - 7)){ // No chance of promotion
-				moves[count] = NewMoveStructure.createMove(sq, sq - 7, 12);
+				moves[count] = NewMoveStructure.createMove(sq, sq - 7, 12, 6, 12);
 				count ++;
 			}else if((sq + 8) % 8 != 0 && b.enPassant == (sq - 9)){
-				moves[count] = NewMoveStructure.createMove(sq, sq - 9, 12);
+				moves[count] = NewMoveStructure.createMove(sq, sq - 9, 12, 6, 12);
 				count ++;
 			}
 		}
 		if((allPieces & (1L << (sq - 8))) == 0L){
-			count = addPawnMove(moves, count, false, sq, sq - 8, loudOnly, false);
+			count = addPawnMove(b, moves, count, false, sq, sq - 8, loudOnly, false);
 			if(!loudOnly && sq < 56 && sq > 47 && ((allPieces & (1L << (sq - 16))) == 0L)){ // No promotions
-				moves[count] = NewMoveStructure.createMove(sq, sq - 16, 12);
+				moves[count] = NewMoveStructure.createMove(sq, sq - 16, 12, 6, 12);
 				count ++;
 			}
 		}
 		return count;
 	}
 		
-	private static short addPawnMove(int[] moves, short count, boolean white, int from, int to, boolean onlyPromote, boolean capture){
+	private static int addPawnMove(Board b, int[] moves, int count, boolean white, int from, int to, boolean onlyPromote, boolean capture){
 		boolean promote = (white ? (to > 55) : (to < 8));
+		int piece = (white ? 0 : 6);
+		int capturePiece = (capture ? Utils.getPieceAt(b, to) : 12);
 		if(promote){
-			moves[count] = NewMoveStructure.createMove(from, to, (white ? 4 : 10)); // Queen 
-			moves[count + 1] = NewMoveStructure.createMove(from, to, (white ? 1 : 7)); // Knight
-			moves[count + 2] = NewMoveStructure.createMove(from, to, (white ? 3 : 9)); // Rook
-			moves[count + 3] = NewMoveStructure.createMove(from, to, (white ? 2 : 8)); // Bishop
+			moves[count] = NewMoveStructure.createMove(from, to, (white ? 4 : 10), piece, capturePiece); // Queen 
+			moves[count + 1] = NewMoveStructure.createMove(from, to, (white ? 1 : 7), piece, capturePiece); // Knight
+			moves[count + 2] = NewMoveStructure.createMove(from, to, (white ? 3 : 9), piece, capturePiece); // Rook
+			moves[count + 3] = NewMoveStructure.createMove(from, to, (white ? 2 : 8), piece, capturePiece); // Bishop
 			count += 4;
 		}else if(!onlyPromote){
-			moves[count] = NewMoveStructure.createMove(from, to, 12);
+			moves[count] = NewMoveStructure.createMove(from, to, 12, piece, capturePiece);
 			count ++;
 		}
 		return count;
@@ -420,7 +422,7 @@ public class MoveGeneration {
 			}
 			kingMoves[i] = l;
 		}
-		for(byte c = 0; c < 2; c++){
+		for(int c = 0; c < 2; c++){
 			for(int i = (c == 0 ? 0 : 8); i < (c == 0 ? 56 : 64); i++){
 				long l = 0L; 
 				if((i + 1) % 8 != 0) l |= (1L << (i + (c == 0 ? 9 : -7)));

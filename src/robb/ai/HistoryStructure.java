@@ -66,7 +66,7 @@ public class HistoryStructure {
 		return 1L == ((move >>> nullMoveShift) & 1L);
 	}
 	
-	public static long createMove(int from, int to, int promote, int castle, int pieceCaptured, boolean enPassant, int lastEnPassantSquare, byte halfMoveClock){
+	public static long createMove(int from, int to, int promote, int castle, int pieceCaptured, boolean enPassant, int lastEnPassantSquare, int halfMoveClock){
 		return ((long)from + (long)(to << toShift) + (long)(promote << promoteShift) + (long)(castle << castleShift) + (long)(pieceCaptured << pieceCapturedShift) + (long)((enPassant ? 1 : 0) << enPassantShift) + (long)((long)lastEnPassantSquare << lastEnPassantSquareShift) + (long)((long)halfMoveClock << halfMoveShift));
 	}
 	
@@ -75,7 +75,7 @@ public class HistoryStructure {
 	}
 	
 	public static String toString(long l){
-		return "Move = " + Utils.shortMoveToNotation(getFrom(l) + (getTo(l) << toShift) + (getPromote(l) << promoteShift)) + " (From = " + getFrom(l) + ", To = " + getTo(l) + ", Promote = " + getPromote(l) + "), Castles = " + Long.toBinaryString(getCastles(l)) + ", Piece Captured = " + getPieceCaptured(l) + ", Was En Passant = " + wasEnPassant(l) + ", Last En Passant Square = " + getLastEnPassantSquare(l) + ", Half Move = " + getHalfMove(l) + ", Was Null" + " = " + wasNullMove(l); 
+		return "Move = " + Utils.moveToNotation(getFrom(l) + (getTo(l) << toShift) + (getPromote(l) << promoteShift)) + " (From = " + getFrom(l) + ", To = " + getTo(l) + ", Promote = " + getPromote(l) + "), Castles = " + Long.toBinaryString(getCastles(l)) + ", Piece Captured = " + getPieceCaptured(l) + ", Was En Passant = " + wasEnPassant(l) + ", Last En Passant Square = " + getLastEnPassantSquare(l) + ", Half Move = " + getHalfMove(l) + ", Was Null" + " = " + wasNullMove(l); 
 	}
 
 }
