@@ -80,7 +80,7 @@ public class Search extends Thread implements Runnable {
 		int index = (int)(hash & Engine.fetchMask);
 		long node = Engine.tTable.get(index);
 		if(node != 0 && NodeStructure.getCheckBits(node) == NodeStructure.getCheckBits(hash)){
-			short hashMove = NodeStructure.getBestMove(node);
+			int hashMove = NodeStructure.getMove(board, node);
 			initialScores = MoveOrdering.getMoveScores(board, moves, hashMove, -1, initialScores);
 		}else{
 			initialScores = MoveOrdering.getMoveScores(board, moves, 0, -1, initialScores);
@@ -201,9 +201,9 @@ public class Search extends Thread implements Runnable {
 		// Check the transposition.
 		int hashMove = 0;
 		if(node != 0 && NodeStructure.getCheckBits(node) == NodeStructure.getCheckBits(hash)){
-			byte nodeDepth = NodeStructure.getDepth(node);
+			int nodeDepth = NodeStructure.getDepth(node);
 			if(nodeDepth >= depth - 1){
-				hashMove = NodeStructure.getBestMove(node);
+				hashMove = NodeStructure.getMove(board, node);
 				if(nodeDepth >= depth){
 					Flag nodeFlag = NodeStructure.getFlag(node);
 					int nodeScore = NodeStructure.getScore(node);
@@ -452,7 +452,7 @@ public class Search extends Thread implements Runnable {
 
 				if(node == 0) break;
 
-				short hashMove = NodeStructure.getBestMove(node);
+				int hashMove = NodeStructure.getMove(board, node);
 				if(hashMove == 0){
 					break;
 				}else{
@@ -469,6 +469,7 @@ public class Search extends Thread implements Runnable {
 					}
 
 					if(found){
+//					if(true){
 						pv += Utils.moveToNotation(hashMove) + " ";
 						board = Make.makeMove(board, hashMove);
 					}else{

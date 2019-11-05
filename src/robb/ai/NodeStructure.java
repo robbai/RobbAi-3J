@@ -2,22 +2,22 @@ package robb.ai;
 
 public class NodeStructure {
 	
-	//32 bits
+	// 32 bits
 	private static final long scoreMask = 4294967295L;
 	
-	//8 bits
+	// 8 bits
 	private static final int depthShift = 32;
 	private static final long depthMask = 255;
 	
-	//16 bits
-	private static final int bestMoveShift = 40;
-	private static final long bestMoveMask = 65535;
+	// 16 bits
+	private static final int moveShift = 40;
+	private static final long moveMask = 65535;
 	
-	//2 bits
+	// 2 bits
 	private static final int flagShift = 56;
 	private static final long flagMask = 3;
 	
-	//6 bits
+	// 6 bits
 	private static final int checkShift = 58;
 	private static final long checkMask = 63;
 	
@@ -25,12 +25,13 @@ public class NodeStructure {
 		return (int)(node & scoreMask);
 	}
 	
-	public static byte getDepth(long node){
-		return (byte)((node >>> depthShift) & depthMask);
+	public static int getDepth(long node){
+		return (int)((node >>> depthShift) & depthMask);
 	}
 	
-	public static short getBestMove(long node){
-		return (short)((node >>> bestMoveShift) & bestMoveMask);
+	public static int getMove(Board b, long node){
+		int move = (int)((node >>> moveShift) & moveMask);
+		return NewMoveStructure.createMove(b, NewMoveStructure.getFrom(move), NewMoveStructure.getTo(move), NewMoveStructure.getPromote(move));
 	}
 	
 	/**
@@ -50,20 +51,20 @@ public class NodeStructure {
 			case 2:
 				return Flag.UPPERBOUND;
 		}
-		System.out.println("Bad Flag (" + flag + "): " + asString(node, false));
+//		System.out.println("Bad Flag (" + flag + "): " + asString(node, false));
 		return null;
 	}
 	
-	public static long createNode(int depth, int bestMove, int score, Flag flag, long hash){
+	public static long createNode(int depth, int move, int score, Flag flag, long hash){
 //		System.out.println(Utils.shortMoveToNotation(bestMove) + ": " + bestMove + ", " + Long.toBinaryString((long)(bestMove & bestMoveMask)));
 //		System.out.println("Creating Node: Depth: " + depth + ", Best Move: " + bestMove + ", Score: " + score + ", Flag: " + flag);
 		
-		long n = (score & scoreMask) + ((long)depth << depthShift) + ((long)(bestMove & bestMoveMask) << bestMoveShift) + ((flag == Flag.EXACT ? 0L : (flag == Flag.LOWERBOUND ? 1L : 2L)) << flagShift) + ((hash & checkMask) << checkShift);		
+		long n = (score & scoreMask) + ((long)depth << depthShift) + ((long)(move & moveMask) << moveShift) + ((flag == Flag.EXACT ? 0L : (flag == Flag.LOWERBOUND ? 1L : 2L)) << flagShift) + ((hash & checkMask) << checkShift);		
 		return n;
 	}
 	
-	public static String asString(long node, boolean flag){
-		return ("Depth: " + Long.toBinaryString(getDepth(node)) + " (" + getDepth(node) + ")" + ", Best Move: " + Integer.toBinaryString(getBestMove(node)) + " (" + getBestMove(node) + "L, " + Utils.moveToNotation(getBestMove(node)) + "), Score: " + Integer.toBinaryString(getScore(node)) + " (" + getScore(node) + ")" + (flag ? ", Flag: " + getFlag(node) : "")) +  ", Node: (" + node + "L)";
-	}
+//	public static String asString(long node, boolean flag){
+//		return ("Depth: " + Long.toBinaryString(getDepth(node)) + " (" + getDepth(node) + ")" + ", Best Move: " + Integer.toBinaryString(getMove(node)) + " (" + getMove(node) + "L, " + Utils.moveToNotation(getMove(node)) + "), Score: " + Integer.toBinaryString(getScore(node)) + " (" + getScore(node) + ")" + (flag ? ", Flag: " + getFlag(node) : "")) +  ", Node: (" + node + "L)";
+//	}
 
 }

@@ -62,7 +62,7 @@ public class UCI {
             	long hash = (Engine.board.threeFold.size() != 0 ? Engine.board.threeFold.get(Engine.board.threeFold.size() - 1) : Zobrist.getHash(Engine.board));
         		long node = Engine.tTable.get((int)(hash & Engine.fetchMask));
             	int[] scores = new int[MoveIterator.maxMoves];
-            	MoveOrdering.getMoveScores(Engine.board, moves, (node == 0 ? -1 : NodeStructure.getBestMove(node)), (short)0, scores);
+            	MoveOrdering.getMoveScores(Engine.board, moves, (node == 0 ? -1 : NodeStructure.getMove(Engine.board, node)), 0, scores);
             	
             	moves = MoveOrdering.insertionSort(moves, scores);
             	for(short i = 0; i < MoveIterator.maxMoves; i++){
@@ -103,11 +103,12 @@ public class UCI {
             	}else{
             		Make.undoMove(Engine.board);
             	}
-			}else if(str.equals("tt")){
-				for(long l : Engine.tTable){
-					if(l != 0L) System.out.println(NodeStructure.asString(l, true));
-				}
 			}
+//			else if(str.equals("tt")){
+//				for(long l : Engine.tTable){
+//					if(l != 0L) System.out.println(NodeStructure.asString(l, true));
+//				}
+//			}
         }
     }
 	
