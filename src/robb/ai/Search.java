@@ -296,7 +296,7 @@ public class Search extends Thread implements Runnable {
 					alpha = score;
 
 					int enemy = Utils.getToBeCapturedPiece(board, move);
-					int friendly = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
+					int friendly = NewMoveStructure.getPiece(move);
 					int to = NewMoveStructure.getTo(move);
 
 					if(enemy == 12) MoveOrdering.history[friendly][to] += depth;	

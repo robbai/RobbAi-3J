@@ -59,7 +59,7 @@ public class MoveGeneration {
 		}
 		
 		// Pawn moves
-		long piecesToVisit = b.whiteToMove ? b.WP : b.BP;
+		long piecesToVisit = (b.whiteToMove ? b.WP : b.BP);
 		while(piecesToVisit != 0L){
 			int sq = Long.numberOfTrailingZeros(piecesToVisit);			
 			if(b.whiteToMove){
@@ -71,14 +71,15 @@ public class MoveGeneration {
 		}
 		
 		// Knight moves
-		piecesToVisit = b.whiteToMove ? b.WN : b.BN;
+		int p = (b.whiteToMove ? 1 : 7);
+		piecesToVisit = (b.whiteToMove ? b.WN : b.BN);
 		while(piecesToVisit != 0L){
 			int sq = Long.numberOfTrailingZeros(piecesToVisit);
 			long m = getAllKnightMoves(sq, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12, p);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -86,14 +87,15 @@ public class MoveGeneration {
 		}
 		
 		// Bishop moves
-		piecesToVisit = b.whiteToMove ? b.WB : b.BB;
+		p = (b.whiteToMove ? 2 : 8);
+		piecesToVisit = (b.whiteToMove ? b.WB : b.BB);
 		while(piecesToVisit != 0L){
 			int sq = Long.numberOfTrailingZeros(piecesToVisit);
 			long m = getAllBishopMoves(sq, enemyPieces, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12, p);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -101,14 +103,15 @@ public class MoveGeneration {
 		}
 
 		// Rook moves
-		piecesToVisit = b.whiteToMove ? b.WR : b.BR;
+		p = (b.whiteToMove ? 3 : 9);
+		piecesToVisit = (b.whiteToMove ? b.WR : b.BR);
 		while(piecesToVisit != 0L){
 			int sq = Long.numberOfTrailingZeros(piecesToVisit);
 			long m = getAllRookMoves(sq, enemyPieces, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12, p);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -116,14 +119,15 @@ public class MoveGeneration {
 		}
 
 		// Queen moves
-		piecesToVisit = b.whiteToMove ? b.WQ : b.BQ;
+		p = (b.whiteToMove ? 4 : 10);
+		piecesToVisit = (b.whiteToMove ? b.WQ : b.BQ);
 		while(piecesToVisit != 0L){
 			int sq = Long.numberOfTrailingZeros(piecesToVisit);
 			long m = getAllRookMoves(sq, enemyPieces, friendlyPieces) | getAllBishopMoves(sq, enemyPieces, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12, p);
 				count ++;
 				m ^= (1L << f);
 			}
@@ -131,14 +135,15 @@ public class MoveGeneration {
 		}
 		
 		// King moves
-		piecesToVisit = b.whiteToMove ? b.WK : b.BK;
+		p = (b.whiteToMove ? 5 : 11);
+		piecesToVisit = (b.whiteToMove ? b.WK : b.BK);
 		while(piecesToVisit != 0L){
 			int sq = Long.numberOfTrailingZeros(piecesToVisit);
 			long m = getAllKingMoves(sq, friendlyPieces);
 			if(loudOnly) m &= enemyPieces;
 			while(m != 0){
 				int f = Long.numberOfTrailingZeros(m);
-				moves[count] = NewMoveStructure.createMove(b, sq, f, 12);
+				moves[count] = NewMoveStructure.createMove(b, sq, f, 12, p);
 				count ++;
 				m ^= (1L << f);
 			}

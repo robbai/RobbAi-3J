@@ -37,8 +37,12 @@ public class NewMoveStructure {
 		return from + (to << toShift) + (promote << promoteShift) + (piece << pieceShift) + (capture << captureShift);
 	}
 	
+	public static int createMove(Board b, int from, int to, int promote, int piece){
+		return createMove(from, to, promote, piece, Utils.getPieceAt(b, to));
+	}
+	
 	public static int createMove(Board b, int from, int to, int promote){
-		return createMove(from, to, promote, Utils.getPieceAt(b, from), Utils.getPieceAt(b, to));
+		return createMove(b, from, to, promote, Utils.getPieceAt(b, from));
 	}
 
 }

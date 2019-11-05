@@ -108,13 +108,13 @@ public class MoveOrdering {
 			// Hash move.
 			return hashMoveScore; 
 		}else{
-			int enemy = Utils.getToBeCapturedPiece(board, move);
+			int capture = Utils.getToBeCapturedPiece(board, move);
 			
 			int killerIndex = getKillerIndex(move, ply);
 			
-			if(enemy != 12){
+			if(capture != 12){
 				// King capture.
-				if(enemy == 5 || enemy == 11) return kingCaptureScore; 
+				if(capture == 5 || capture == 11) return kingCaptureScore; 
 					
 //				// MVV LVA.
 //				int score = goodCaptureScore * (1 + (enemy % 6)); 
@@ -134,7 +134,7 @@ public class MoveOrdering {
 				return killerMoveScore - killerIndex;
 			}else{
 				// History heuristic.
-				int piece = Utils.getPieceAt(board, NewMoveStructure.getFrom(move));
+				int piece = NewMoveStructure.getPiece(move);
 				int to = NewMoveStructure.getTo(move);
 				
 				int historyScore = history[piece][to];

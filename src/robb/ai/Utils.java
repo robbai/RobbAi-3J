@@ -157,14 +157,15 @@ public class Utils {
 	}
 	
 	public static int getToBeCapturedPiece(Board b, int move){
-		int piece = getPieceAt(b, NewMoveStructure.getTo(move)); 
-		if(piece != 12) return piece;
-		if(b.enPassant != 64){ //En Passant
-			byte start = (byte)(move & 63);
-			if(((1L << start) & (b.whiteToMove ? b.BP : b.WP)) != 0L){
-				return ((Math.abs(start - ((move >>> 6) & 63)) % 8) != 0 ? (b.whiteToMove ? 6 : 0) : 12); // If Pawn move, is diagonal.
-			}
+		int capture = NewMoveStructure.getCapture(move); 
+		if(capture != 12 || b.enPassant == 64) return capture;
+		
+		// En Passant.
+		if((NewMoveStructure.getPiece(move) % 6) == 0){
+			int from = NewMoveStructure.getFrom(move); 
+			return ((Math.abs(from - ((move >>> 6) & 63)) % 8) != 0 ? (b.whiteToMove ? 6 : 0) : 12); // If Pawn move, is diagonal.
 		}
+
 		return 12;
 	}
 	

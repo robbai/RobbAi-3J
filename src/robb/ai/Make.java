@@ -264,7 +264,7 @@ public class Make {
 
 		int from = HistoryStructure.getFrom(u);
 		int to = HistoryStructure.getTo(u);
-		int piece = Utils.getPieceAt(b, to); // TODO
+		int piece = Utils.getPieceAt(b, to); // TODO: implement the moving piece in the history structure
 		int promote = HistoryStructure.getPromote(u);
 
 		if(debug) System.out.println(indent + "Undo: " + Utils.moveToNotation(from + (to << 6) + (promote << 12)));
