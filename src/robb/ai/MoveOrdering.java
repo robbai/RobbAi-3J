@@ -18,7 +18,7 @@ public class MoveOrdering {
 			int move = moves[i];
 			if(move == 0) break;
 			scores[i] = getMoveScore(b, move, hashMove, ply);
-		}		
+		}
 		return scores;
 	}
 

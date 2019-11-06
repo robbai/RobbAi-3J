@@ -37,8 +37,8 @@ public class NodeStructure {
 	/**
 	 * Applies to both nodes and hashes!
 	 */
-	public static byte getCheckBits(long node){
-		return (byte)((node >>> checkShift) & checkMask);
+	public static long getCheckBits(long node){
+		return (node & (checkMask << checkShift));
 	}
 	
 	public static Flag getFlag(long node){
@@ -59,7 +59,7 @@ public class NodeStructure {
 //		System.out.println(Utils.shortMoveToNotation(bestMove) + ": " + bestMove + ", " + Long.toBinaryString((long)(bestMove & bestMoveMask)));
 //		System.out.println("Creating Node: Depth: " + depth + ", Best Move: " + bestMove + ", Score: " + score + ", Flag: " + flag);
 		
-		long n = (score & scoreMask) + ((long)depth << depthShift) + ((long)(move & moveMask) << moveShift) + ((flag == Flag.EXACT ? 0L : (flag == Flag.LOWERBOUND ? 1L : 2L)) << flagShift) + ((hash & checkMask) << checkShift);		
+		long n = (score & scoreMask) + ((long)depth << depthShift) + ((long)(move & moveMask) << moveShift) + ((flag == Flag.EXACT ? 0L : (flag == Flag.LOWERBOUND ? 1L : 2L)) << flagShift) + (hash & (checkMask << checkShift));		
 		return n;
 	}
 	

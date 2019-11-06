@@ -202,23 +202,21 @@ public class Search extends Thread implements Runnable {
 		int hashMove = 0;
 		if(node != 0 && NodeStructure.getCheckBits(node) == NodeStructure.getCheckBits(hash)){
 			int nodeDepth = NodeStructure.getDepth(node);
-			if(nodeDepth >= depth - 1){
+			if(nodeDepth >= depth){
 				hashMove = NodeStructure.getMove(board, node);
-				if(nodeDepth >= depth){
-					Flag nodeFlag = NodeStructure.getFlag(node);
-					int nodeScore = NodeStructure.getScore(node);
-					switch(nodeFlag){
-						case EXACT:
-							return nodeScore;
-						case LOWERBOUND:
-							alpha = Math.max(alpha, nodeScore);
-							break;
-						case UPPERBOUND:
-							beta = Math.min(beta, nodeScore);
-							break;
-					}
-					if(alpha >= beta) return nodeScore;
+				Flag nodeFlag = NodeStructure.getFlag(node);
+				int nodeScore = NodeStructure.getScore(node);
+				switch(nodeFlag){
+					case EXACT:
+						return nodeScore;
+					case LOWERBOUND:
+						alpha = Math.max(alpha, nodeScore);
+						break;
+					case UPPERBOUND:
+						beta = Math.min(beta, nodeScore);
+						break;
 				}
+				if(alpha >= beta) return nodeScore;
 			}
 		}
 
@@ -226,7 +224,7 @@ public class Search extends Thread implements Runnable {
 		 * descend into quiescence.
 		 */
 		if(depth <= 0){
-			int q = quiescence(alpha, beta, ply + 1, false, pieceCount > 5);
+			int q = quiescence(alpha, beta, ply + 1, false, pieceCount > 4);
 			return q;
 		}
 
@@ -295,15 +293,15 @@ public class Search extends Thread implements Runnable {
 				if(score > alpha){
 					alpha = score;
 
-					int enemy = Utils.getToBeCapturedPiece(board, move);
-					int friendly = NewMoveStructure.getPiece(move);
+					int capture = Utils.getToBeCapturedPiece(board, move);
+					int piece = NewMoveStructure.getPiece(move);
 					int to = NewMoveStructure.getTo(move);
 
-					if(enemy == 12) MoveOrdering.history[friendly][to] += depth;	
+					if(capture == 12) MoveOrdering.history[piece][to] += depth;	
 
 					// Alpha-beta prune, killers.
 					if(score >= beta){
-						if(enemy == 12 && ply < maximumDepth){
+						if(capture == 12 && ply < maximumDepth){
 							MoveOrdering.saveKiller(ply, move);
 						}
 
@@ -391,13 +389,16 @@ public class Search extends Thread implements Runnable {
 				int enemy = Utils.getToBeCapturedPiece(board, move);
 
 				if(enemy != 12){
-					// Delta prune.
-					if(deltaPrune && bestScore + deltaMargin + Math.abs(Evaluation.score[enemy]) <= alpha) continue;
-
-					// SEE prune.
-					//					int see = SEE.seeCapture(board, move);
-					int see = moves.getLastScore();
-					if(see < 0) continue;
+//					// Delta prune.
+//					if(deltaPrune && bestScore + deltaMargin + Math.abs(Evaluation.score[enemy]) <= alpha) continue;
+//
+//					// SEE prune.
+//					//					int see = SEE.seeCapture(board, move);
+//					int see = moves.getLastScore();
+//					if(see < 0) continue;
+					
+					// Delta-SEE prune.
+					if(deltaPrune && bestScore + deltaMargin + SEE.seeCapture(board, move) <= alpha) continue;
 				}
 			}
 
